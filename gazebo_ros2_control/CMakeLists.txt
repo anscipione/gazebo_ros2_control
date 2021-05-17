@@ -46,12 +46,17 @@ ament_target_dependencies(${PROJECT_NAME}
 add_library(gazebo_hardware_plugins SHARED
   src/gazebo_system.cpp
 )
+#target_link_libraries(gazebo_hardware_plugins transmission_parser)
+
 ament_target_dependencies(gazebo_hardware_plugins
   hardware_interface
   gazebo_dev
   transmission_interface
   angles
 )
+
+
+
 
 ## Install
 install(TARGETS

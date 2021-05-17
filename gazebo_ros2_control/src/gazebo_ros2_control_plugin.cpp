@@ -432,7 +432,7 @@ void GazeboRosControlPlugin::Load(gazebo::physics::ModelPtr parent, sdf::Element
       impl_->controller_manager_->update();
     }
     controller_interface::return_type result = switch_future.get();
-    if (result != controller_interface::return_type::SUCCESS) {
+    if (result != controller_interface::return_type::OK) {
       RCLCPP_ERROR(impl_->model_nh_->get_logger(), "Error initializing the joint_state_controller");
     }
   } catch (pluginlib::LibraryLoadException & ex) {
