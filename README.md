@@ -1,6 +1,5 @@
 # gazebo_ros2_control
 
-
 This is a ROS 2 package for integrating the `ros2_control` controller architecture with the [Gazebo](http://gazebosim.org/) simulator.
 
 This package provides a Gazebo plugin which instantiates a `ros2_control` controller manager and connects it to a Gazebo model.
@@ -61,22 +60,36 @@ ros2 run gazebo_ros2_control_demos example_position
 ```
 
 
-## Add transmission elements to a URDF
+## Add ros2_control tag to a URDF
 
 To use `ros2_control` with your robot, you need to add some additional elements to your URDF.
-The `<transmission>` element is used to link actuators to joints, see the `<transmission>` spec for exact XML format.
+You should include the tag `<ros2_control>` to access and control the robot interfaces. We should
+include
 
-For the purposes of `gazebo_ros2_control` in its current implementation, the only important information
-in these transmission tags are:
+ - a specific `<plugin>` for our robot
+ - `<joint>` tag including the robot controllers: commands and states.
 
- - `<joint name="">` the name must correspond to a joint else where in your URDF
- - `<type>` the type of transmission. Currently only `transmission_interface/SimpleTransmission` is implemented.
- - `<hardwareInterface>` within the `<actuator>` and `<joint>` tags, this tells the `gazebo_ros2_control` plugin what hardware interface to load (position, velocity or effort interfaces).
+```xml
+<ros2_control name="GazeboSystem" type="system">
+  <hardware>
+    <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+  </hardware>
+  <joint name="slider_to_cart">
+    <command_interface name="effort">
+      <param name="min">-1000</param>
+      <param name="max">1000</param>
+    </command_interface>
+    <state_interface name="position"/>
+    <state_interface name="velocity"/>
+    <state_interface name="effort"/>
+  </joint>
+</ros2_control>
+```
 
 ## Add the gazebo_ros2_control plugin
 
-In addition to the transmission tags, a Gazebo plugin needs to be added to your URDF that
-actually parses the transmission tags and loads the appropriate hardware interfaces and
+In addition to the `ros2_control` tags, a Gazebo plugin needs to be added to your URDF that
+actually parses the `ros2_control` tags and loads the appropriate hardware interfaces and
 controller manager. By default the `gazebo_ros2_control` plugin is very simple, though it is also
 extensible via an additional plugin architecture to allow power users to create their own custom
 robot hardware interfaces between `ros2_control` and Gazebo.
@@ -84,28 +97,36 @@ robot hardware interfaces between `ros2_control` and Gazebo.
 ```xml
 <gazebo>
     <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
+<<<<<<< HEAD
       <robot_sim_type>gazebo_ros2_control/GazeboSystem</robot_sim_type>
       <robot_param>robot_description</robot_param>
       <robot_param_node>robot_state_publisher</robot_param_node>
       <parameters>$(find gazebo_ros2_control_demos)/config/cartpole_controller.yaml</parameters>
       <e_stop_topic>False</e_stop_topic>
       <control_period>0.01</control_period>
+=======
+      <robot_param>robot_description</robot_param>
+      <robot_param_node>robot_state_publisher</robot_param_node>
+      <parameters>$(find gazebo_ros2_control_demos)/config/cartpole_controller.yaml</parameters>
+>>>>>>> origin/master
     </plugin>
 </gazebo>
 ```
 
 The `gazebo_ros2_control` `<plugin>` tag also has the following optional child elements:
 
- - `<control_period>`: The period of the controller update (in seconds), defaults to Gazebo's period
  - `<robot_param>`: The location of the `robot_description` (URDF) on the parameter server, defaults to `robot_description`
  - `<robot_param_node>`: Name of the node where the `robot_param` is located, defauls to `robot_state_publisher`
+<<<<<<< HEAD
  - `<robot_sim_type>`: The pluginlib name of a custom robot ros2_control system plugin to be used, defaults to `gazebo_ros2_control/GazeboSystem`
+=======
+>>>>>>> origin/master
  - `<parameters>`: YAML file with the configuration of the controllers
  - `<e_stop_topic>`: Topic to publish the emergency stop
 
 #### Default gazebo_ros2_control Behavior
 
-By default, without a `<robot_sim_type>` tag, `gazebo_ros2_control` will attempt to get all of the information it needs to interface with a ros2_control-based controller out of the URDF. This is sufficient for most cases, and good for at least getting started.
+By default, without a `<plugin>` tag, `gazebo_ros2_control` will attempt to get all of the information it needs to interface with a ros2_control-based controller out of the URDF. This is sufficient for most cases, and good for at least getting started.
 
 The default behavior provides the following ros2_control interfaces:
 
@@ -119,15 +140,30 @@ The `gazebo_ros2_control` Gazebo plugin also provides a pluginlib-based interfac
 
 These plugins must inherit `gazebo_ros2_control::GazeboSystemInterface` which implements a simulated `ros2_control`
 `hardware_interface::SystemInterface`. SystemInterface provides API-level access to read and command joint properties.
+<<<<<<< HEAD
 
 The respective GazeboSystemInterface sub-class is specified in a URDF model and is loaded when the
 robot model is loaded. For example, the following XML will load the default plugin
 (same behavior as when using no `<robot_sim_type>` tag):
+=======
+>>>>>>> origin/master
 
+The respective GazeboSystemInterface sub-class is specified in a URDF model and is loaded when the
+robot model is loaded. For example, the following XML will load the default plugin:
 ```xml
+<ros2_control name="GazeboSystem" type="system">
+  <hardware>
+    <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+  </hardware>
+  ...
+<ros2_control>
 <gazebo>
   <plugin name="gazebo_ros2_control" filename="libgazebo_ros2_control.so">
+<<<<<<< HEAD
     <robot_sim_type>gazebo_ros2_control/GazeboSystem</robot_sim_type>
+=======
+    ...
+>>>>>>> origin/master
   </plugin>
 </gazebo>
 ```
@@ -164,11 +200,14 @@ cart_pole_controller:
        - slider_to_cart
     write_op_modes:
        - slider_to_cart
+<<<<<<< HEAD
     state_publish_rate: 25
     action_monitor_rate: 20
     constraints:
       stopped_velocity_tolerance: 0.05
       goal_time: 5
+=======
+>>>>>>> origin/master
 ```
 #### Executing the examples
 

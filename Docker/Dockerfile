@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -q -y --no-install-recommends \
 
 RUN mkdir -p /home/ros2_ws/src \
     && cd /home/ros2_ws/src/ \
-    && git clone https://github.com/ros-simulation/gazebo_ros2_control -b ahcorde/update/foxy \
+    && git clone https://github.com/ros-simulation/gazebo_ros2_control \
     && rosdep update \
     && rosdep install --from-paths ./ -i -y --rosdistro foxy \
       --ignore-src

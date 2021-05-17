@@ -30,16 +30,35 @@
 
 #include "rclcpp/rclcpp.hpp"
 
-#include "transmission_interface/transmission_info.hpp"
-
 // URDF
 #include "urdf/model.h"
 
 namespace gazebo_ros2_control
 {
 
-// SystemInterface provides API-level access to read and command joint properties.
+template<class ENUM, class UNDERLYING = typename std::underlying_type<ENUM>::type>
+class SafeEnum
+{
+public:
+  SafeEnum()
+  : mFlags(0) {}
+  explicit SafeEnum(ENUM singleFlag)
+  : mFlags(singleFlag) {}
+  SafeEnum(const SafeEnum & original)
+  : mFlags(original.mFlags) {}
 
+  SafeEnum & operator|=(ENUM addValue) {mFlags |= addValue; return *this;}
+  SafeEnum operator|(ENUM addValue) {SafeEnum result(*this); result |= addValue; return result;}
+  SafeEnum & operator&=(ENUM maskValue) {mFlags &= maskValue; return *this;}
+  SafeEnum operator&(ENUM maskValue) {SafeEnum result(*this); result &= maskValue; return result;}
+  SafeEnum operator~() {SafeEnum result(*this); result.mFlags = ~result.mFlags; return result;}
+  explicit operator bool() {return mFlags != 0;}
+
+protected:
+  UNDERLYING mFlags;
+};
+
+// SystemInterface provides API-level access to read and command joint properties.
 class GazeboSystemInterface
   : public hardware_interface::BaseInterface<hardware_interface::SystemInterface>
 {
@@ -47,16 +66,24 @@ public:
   /// \brief Initilize the system interface
   /// param[in] model_nh pointer to the ros2 node
   /// param[in] parent_model pointer to the model
-  /// param[in] transmissions availables in the model
+  /// param[in] control_hardware vector filled with information about robot's control resources
   /// param[in] sdf pointer to the SDF
   virtual bool initSim(
     rclcpp::Node::SharedPtr & model_nh,
     gazebo::physics::ModelPtr parent_model,
-    std::vector<transmission_interface::TransmissionInfo> transmissions,
+    const hardware_interface::HardwareInfo & hardware_info,
     sdf::ElementPtr sdf) = 0;
 
   // Methods used to control a joint.
-  enum ControlMethod {EFFORT, POSITION, VELOCITY};
+  enum ControlMethod_
+  {
+    NONE      = 0,
+    POSITION  = (1 << 0),
+    VELOCITY  = (1 << 1),
+    EFFORT    = (1 << 2),
+  };
+
+  typedef SafeEnum<enum ControlMethod_> ControlMethod;
 
 protected:
   rclcpp::Node::SharedPtr nh_;
