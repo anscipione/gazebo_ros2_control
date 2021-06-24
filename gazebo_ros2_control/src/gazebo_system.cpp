@@ -21,6 +21,9 @@
 #include "gazebo/sensors/ImuSensor.hh"
 #include "gazebo/sensors/ForceTorqueSensor.hh"
 #include "gazebo/sensors/SensorManager.hh"
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2/LinearMath/Matrix3x3.h>
+
 class gazebo_ros2_control::GazeboSystemPrivate
 {
 public:
@@ -84,8 +87,8 @@ public:
   /// \brief handles to the imus from within Gazebo
   std::vector<gazebo::sensors::ImuSensorPtr> sim_imu_sensors_;
 
-  /// \brief An array per IMU with 4 orientation, 3 angular velocity and 3 linear acceleration
-  std::vector<std::array<double, 10>> imu_sensor_data_;
+  /// \brief An array per IMU with 4 orientation, 3 angular velocity and 3 linear acceleration, 3 compass and 3 euler
+  std::vector<std::array<double, 16>> imu_sensor_data_;
 
   /// \brief The ROS2 Control state interface for the current imu readings
   std::vector<std::shared_ptr<hardware_interface::StateInterface>> imu_state_;
@@ -310,6 +313,12 @@ void GazeboSystem::registerSensors(
         {"linear_acceleration.x", 7},
         {"linear_acceleration.y", 8},
         {"linear_acceleration.z", 9},
+        {"euler_angles.yaw", 10},
+        {"euler_angles.pitch", 11},
+        {"euler_angles.roll", 12},
+        {"compass.x", 13},
+        {"compass.y", 14},
+        {"compass.z", 15},
       };
       RCLCPP_INFO_STREAM(this->nh_->get_logger(), "\t\t " << state_interface.name);
 
@@ -464,6 +473,25 @@ hardware_interface::return_type GazeboSystem::read()
     this->dataPtr->imu_sensor_data_[j][7] = sim_imu->LinearAcceleration().X();
     this->dataPtr->imu_sensor_data_[j][8] = sim_imu->LinearAcceleration().Y();
     this->dataPtr->imu_sensor_data_[j][9] = sim_imu->LinearAcceleration().Z();
+
+    tf2::Quaternion q(
+        this->dataPtr->imu_sensor_data_[j][0],
+        this->dataPtr->imu_sensor_data_[j][1],
+        this->dataPtr->imu_sensor_data_[j][2],
+        this->dataPtr->imu_sensor_data_[j][3]
+        );
+    tf2::Matrix3x3 m(q);
+    double roll, pitch, yaw;
+    m.getRPY(roll, pitch, yaw);
+    
+    this->dataPtr->imu_sensor_data_[j][10] = roll;
+    this->dataPtr->imu_sensor_data_[j][11] = pitch;
+    this->dataPtr->imu_sensor_data_[j][12] = yaw;
+
+    // TODO(everybody) : read compass from word
+    this->dataPtr->imu_sensor_data_[j][13] = 0;
+    this->dataPtr->imu_sensor_data_[j][14] = 0;
+    this->dataPtr->imu_sensor_data_[j][15] = 0;
   }
 
   for (unsigned int j = 0; j < this->dataPtr->sim_ft_sensors_.size(); j++) {
