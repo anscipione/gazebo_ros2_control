@@ -259,7 +259,7 @@ void GazeboSystem::registerSensors(
           "' has more than one gazebo sensor with the " <<
           "same name, only using the first. It has " << gz_sensor_names.size() << " sensors");
     }
-
+    //gazebo::physics::WorldPtr word = gazebo::physics::get_world(); 
     gazebo::sensors::SensorPtr simsensor = gazebo::sensors::SensorManager::Instance()->GetSensor(
       gz_sensor_names[0]);
     if (!simsensor) {
